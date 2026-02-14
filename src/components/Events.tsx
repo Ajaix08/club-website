@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, ExternalLink } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Event } from '../types';
 
 export default function Events() {
@@ -9,11 +9,22 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     fetchEvents();
   }, []);
 
   const fetchEvents = async () => {
     try {
+      if (!supabase) {
+        setPastEvents([]);
+        setUpcomingEvents([]);
+        return;
+      }
+
       const { data: past } = await supabase
         .from('events')
         .select('*')

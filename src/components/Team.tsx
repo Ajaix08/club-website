@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Mail, Linkedin } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { TeamMember } from '../types';
 
 export default function Team() {
@@ -8,11 +8,21 @@ export default function Team() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     fetchTeamMembers();
   }, []);
 
   const fetchTeamMembers = async () => {
     try {
+      if (!supabase) {
+        setTeamMembers([]);
+        return;
+      }
+
       const { data } = await supabase
         .from('team_members')
         .select('*')
